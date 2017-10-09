@@ -1,23 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/carlmjohnson/pomodoro/display"
+	"./display"
 	"github.com/nsf/termbox-go"
 )
 
-func fullscreenCountdown(start, finish time.Time, formatter func(time.Duration) string) {
-	err := termbox.Init()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Couldn't open display:", err)
-		os.Exit(2)
-	}
-	defer termbox.Close()
-
+func fullscreenCountdown(start, finish time.Time, formatter func(time.Duration) string, title string) {
 	// Leaks a goroutine
 	ticker := time.Tick(40 * time.Millisecond)
 	quit := make(chan struct{})
@@ -37,7 +29,7 @@ func fullscreenCountdown(start, finish time.Time, formatter func(time.Duration) 
 		}
 	}()
 
-	for render(start, finish, formatter) {
+	for render(start, finish, formatter, title) {
 		select {
 		case <-ticker:
 		case <-quit:
@@ -49,7 +41,7 @@ func fullscreenCountdown(start, finish time.Time, formatter func(time.Duration) 
 
 }
 
-func render(start, finish time.Time, formatter func(time.Duration) string) bool {
+func render(start, finish time.Time, formatter func(time.Duration) string, title string) bool {
 	now := time.Now()
 	remaining := -now.Sub(finish)
 	if remaining < 0 {
@@ -62,6 +54,12 @@ func render(start, finish time.Time, formatter func(time.Duration) string) bool 
 	centerY := screenH / 2
 
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+
+	blockStr := title
+	display.Point{
+		centerX - (len(blockStr) * (display.BigCharWidth + 1) / 2), centerY - 8,
+		termbox.ColorRed, termbox.ColorDefault,
+	}.BigStr(blockStr)
 
 	startStr := start.Format(timeFmt)
 	display.Point{

@@ -9,38 +9,40 @@ import (
 	"time"
 )
 
-const defaultDuration = 25 * time.Minute
+const defaultPomodoroDuration = 15 * time.Minute
+const defaultBreakDuration = 5 * time.Minute
 
-var silence = flag.Bool("silence", false, "Don't ring bell after countdown")
+var silent = flag.Bool("silent", false, "Don't ring bell after countdown")
+
+var hidden = flag.Bool("hidden", false, "Don't show notification after countdown")
 
 var simple = flag.Bool("simple", false, "Display simple countdown")
 
 func init() {
 	const usage = `Usage of pomodoro:
 
-    pomodoro [options] [duration]
+    pomodoro [options] [pomodoroDuration] [breakDuration]
 
-Duration defaults to %d minutes. Durations may be expressed as integer minutes
+Pomodoro duration defaults to %d minutes.
+Break duration defaults to %d minutes.
+Durations may be expressed as integer minutes
 (e.g. "15") or time with units (e.g. "1m30s" or "90s").
 
-Chimes system bell at the end of the timer, unless -silence is set.
+Chimes system bell at the end of the timer, unless -silent is set.
+Creates a system notification at the end of the timer, unless -hidden is set.
 `
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, usage, int(defaultDuration/time.Minute))
+		fmt.Fprintf(os.Stderr, usage, int(defaultPomodoroDuration/time.Minute), int(defaultBreakDuration/time.Minute))
 		flag.PrintDefaults()
 	}
 	flag.Parse()
 }
 
 func waitDuration() (time.Duration, error) {
-	if flag.NArg() > 1 {
-		return 0, errors.New("Too many args...")
-	}
-
 	arg := flag.Arg(0)
 
 	if arg == "" {
-		return defaultDuration, nil
+		return defaultPomodoroDuration, nil
 	}
 
 	if n, err := strconv.Atoi(arg); err == nil {
@@ -51,5 +53,23 @@ func waitDuration() (time.Duration, error) {
 		return d, nil
 	}
 
-	return 0, errors.New("Couldn't parse duration...")
+	return 0, errors.New("Couldn't parse pomodoro duration.")
+}
+
+func breakDuration() (time.Duration, error) {
+	arg := flag.Arg(1)
+
+	if arg == "" {
+		return defaultBreakDuration, nil
+	}
+
+	if n, err := strconv.Atoi(arg); err == nil {
+		return time.Duration(n) * time.Minute, nil
+	}
+
+	if d, err := time.ParseDuration(arg); err == nil {
+		return d, nil
+	}
+
+	return 0, errors.New("Couldn't parse break duration.")
 }
