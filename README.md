@@ -22,8 +22,8 @@ Usage of pomodoro:
 
     pomodoro [options] [pomodoroDuration] [breakDuration]
 
-Pomodoro duration defaults to %d minutes.
-Break duration defaults to %d minutes.
+Pomodoro duration defaults to 15 minutes.
+Break duration defaults to 5 minutes.
 Durations may be expressed as integer minutes
 (e.g. "15") or time with units (e.g. "1m30s" or "90s").
 
